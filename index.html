@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Alarma Guías</title>
+<style>
+  :root {
+    --bg: #f4f6f8;
+    --card-bg: #ffffff;
+    --text: #14181f;
+    --text-dim: #6b7480;
+    --border: #e1e5ea;
+    --accent: #2563eb;
+    --accent-text: #ffffff;
+    --green: #16a34a;
+    --red: #dc2626;
+    --amber: #d97706;
+    --off-border: #b8c0cc;
+    --off-fill: #ffffff;
+    --section-header: #eef1f5;
+    --input-bg: #ffffff;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-sizing: border-box;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14171c; --card-bg: #1c2026; --text: #eef1f5; --text-dim: #9aa3b0;
+      --border: #2b3138; --section-header: #232830; --off-border: #4a525e;
+      --off-fill: #1c2026; --input-bg: #232830;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14171c; --card-bg: #1c2026; --text: #eef1f5; --text-dim: #9aa3b0;
+    --border: #2b3138; --section-header: #232830; --off-border: #4a525e;
+    --off-fill: #1c2026; --input-bg: #232830;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+    -webkit-tap-highlight-color: transparent;
+  }
+  header {
+    position: sticky; top: 0; z-index: 10;
+    padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px 10px;
+    background: var(--bg); border-bottom: 1px solid var(--border);
+  }
+  .brand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .brand-logo { height: 30px; width: auto; flex-shrink: 0; }
+  header h1 { margin: 0 0 2px; font-size: 18px; font-weight: 700; }
+  .wordmark {
+    margin: 0;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+  }
+  .wordmark b { font-weight: 800; color: var(--text); }
+
+  .controlbar { display: flex; gap: 8px; align-items: center; }
+  #dateInput {
+    flex: 1;
+    padding: 9px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--input-bg);
+    color: var(--text);
+    font-size: 14.5px;
+    font-family: inherit;
+  }
+  #saveBtn {
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: none;
+    background: var(--off-border);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #saveBtn.dirty { background: var(--accent); color: var(--accent-text); }
+  #saveBtn:active { opacity: 0.8; }
+
+  .status {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-dim);
+    display: flex; align-items: center; gap: 6px; min-height: 16px;
+  }
+  .status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
+  .status.connected .dot { background: var(--green); }
+  .status.error .dot { background: var(--red); }
+  .status.dirty .dot { background: var(--amber); }
+
+  .legend { display: flex; gap: 14px; padding: 10px 16px 4px; font-size: 12.5px; color: var(--text-dim); flex-wrap: wrap; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .legend .swatch { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--off-border); }
+  .legend .swatch.g { background: var(--green); border-color: var(--green); }
+  .legend .swatch.r { background: var(--red); border-color: var(--red); }
+
+  main { padding: 4px 12px 40px; max-width: 640px; margin: 0 auto; }
+
+  .pier { margin-top: 18px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--card-bg); }
+  .pier-head { padding: 10px 14px; background: var(--section-header); font-weight: 700; font-size: 14.5px; display: flex; justify-content: space-between; align-items: center; }
+  .pier-head .count { font-weight: 500; color: var(--text-dim); font-size: 12.5px; }
+
+  .row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 1px solid var(--border); }
+  .row .num { font-size: 15px; font-weight: 600; width: 48px; flex-shrink: 0; }
+  .row .dots { display: flex; gap: 22px; flex: 1; justify-content: flex-end; }
+  .dotbtn { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; padding: 4px; cursor: pointer; -webkit-user-select: none; user-select: none; }
+  .dotbtn .circle { width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid var(--off-border); background: var(--off-fill); transition: background 0.12s, border-color 0.12s, transform 0.08s; }
+  .dotbtn:active .circle { transform: scale(0.9); }
+  .dotbtn .label { font-size: 10px; color: var(--text-dim); font-weight: 600; letter-spacing: 0.02em; }
+  .dotbtn.on-estribor .circle { background: var(--green); border-color: var(--green); }
+  .dotbtn.on-babor .circle { background: var(--red); border-color: var(--red); }
+
+  .last-saved { padding: 2px 16px 0; font-size: 11.5px; color: var(--text-dim); }
+
+  #mapBtn {
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: none;
+    background: var(--off-border);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #mapBtn.active { background: var(--accent); color: var(--accent-text); }
+  #mapBtn:active { opacity: 0.8; }
+  .controlbar-row2 { display: flex; gap: 8px; margin-top: 8px; }
+
+  .hidden { display: none !important; }
+
+  #mapView { padding: 10px 12px 40px; max-width: 640px; margin: 0 auto; }
+  .map-hint { font-size: 12.5px; color: var(--text-dim); padding: 0 4px 12px; }
+  .map-pier { margin-bottom: 20px; }
+  .map-pier-head {
+    font-weight: 700; font-size: 14px; color: var(--text);
+    background: var(--section-header); border: 1px solid var(--border);
+    border-radius: 10px 10px 0 0; padding: 8px 12px;
+  }
+  .map-grid {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 10px; background: var(--card-bg);
+    border: 1px solid var(--border); border-top: none;
+    border-radius: 0 0 10px 10px;
+  }
+  .map-tile {
+    width: 54px; padding: 5px 2px 7px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px;
+    display: flex; flex-direction: column; align-items: center;
+    cursor: pointer; -webkit-user-select: none; user-select: none;
+  }
+  .map-tile:active { opacity: 0.75; }
+  .map-tile .map-num { font-size: 10.5px; font-weight: 700; color: var(--text); margin-bottom: 5px; white-space: nowrap; }
+  .map-tile .map-dots { display: flex; gap: 4px; margin-bottom: 4px; }
+  .map-tile .map-dot {
+    width: 11px; height: 11px; border-radius: 50%;
+    border: 2px solid var(--off-border); background: var(--off-fill);
+  }
+  .map-tile .map-dot.on-babor { background: var(--red); border-color: var(--red); }
+  .map-tile .map-dot.on-estribor { background: var(--green); border-color: var(--green); }
+  .map-tile .map-boat { width: 30px; height: auto; display: block; pointer-events: none; }
+  .map-tile .map-boat .hull { fill: var(--off-fill); stroke: var(--off-border); stroke-width: 2.5; }
+  .map-tile .map-boat .cabin { fill: var(--border); }
+
+  .row.flash { animation: flashRow 1.3s ease; }
+  @keyframes flashRow {
+    0% { background: var(--accent); }
+    100% { background: transparent; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand-row">
+    <img class="brand-logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAA+kAAAIrCAYAAACTath0AAEAAElEQVR42uz9aZBk2ZUeBn7+nj93j4iMyMiMyqwla0WhCgVUY29sDTZ6ZbPZTTaXblEcUaJGIoc2Gs2YyYz/xkw2P8dMYzN/RjLNyIZDmkwc0iRy2CSHxkVskeyNaPSCBtBoAA1UAahCVWVlVWZGZmzu/vw9nx/3fLzfPX49sgqoJZd7zMIiwpe33Hfvuec7y3cGDz37cyhS5DaQCkANoJX/+zIsRYoUKVKkSJEiRYoUuZdkWIagyNssA/u9dK9PAFwA0Bg4nwB4yUA65+VNAJ2939ln2zKkRYoUKVKkSJEiRYoUKSC9SJE3JzWAMwB2DYBTpgA2DKDXAK4C2AdwBGDPXhvZZ6/a5wnSlwjR9c7eb+yzlf2/B+AygAP5TG3HK+gLDIvWJVKkSJEiRYoUKVKkSBGQXqTIm5UawBkAuwbAKVMAGwbQawBXAewDOAKw569N7LNX7fME6UuE6Hpn79f2/8r+3wNwGcCBfKa241X0BYZFqxKpUqRIkSJFihQpUuRekWEopyNoswy+gOYxvA+l51gG9gPpHwB0CsA5AGcBnLFXNwFcATgAcApgz1y79PfzvLyBXhJEbzacd2W/rPv/D+AKgH15TW3HhOgFhtXfKlKkSJEiRYoUKXIvybAUU1FN4mVsAxwA0Bhi4nwK4CUDKZCXNwJ0931nn23Jj/OP8xPlnwCdOyXCVPZ0Xr2q0oKVqD2hK+N56UAAAAASUVORK5CYII=" alt="Marina Ibiza">
+    <div>
+      <h1>Alarma Guías</h1>
+      <div class="wordmark">MARINA <b>IBIZA</b></div>
+    </div>
+  </div>
+  <div class="controlbar">
+    <input type="date" id="dateInput">
+    <button id="saveBtn">Guardar</button>
+  </div>
+  <div class="controlbar-row2">
+    <button id="mapBtn">Mapa</button>
+  </div>
+  <div class="status" id="status"><span class="dot"></span><span id="statusText">Conectando…</span></div>
+</header>
+
+<div class="last-saved" id="lastSaved"></div>
+
+<div class="legend">
+  <span><span class="swatch g"></span> Estribor (E)</span>
+  <span><span class="swatch r"></span> Babor (B)</span>
+  <span><span class="swatch"></span> Sin guía</span>
+</div>
+
+<main id="main"></main>
+
+<div id="mapView" class="hidden">
+  <div class="map-hint">Vista de conjunto. Toca un amarre para ir a la lista y cambiar su alarma.</div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-compat.min.js"></script>
+<script>
+(function () {
+  const PIERS = [
+    { id: 'A', name: 'Muelle A', range: [20, 32] },
+    { id: 'D', name: 'Muelle D', range: [1, 16] },
+    { id: 'E', name: 'Muelle E', range: [1, 17] }
+  ];
+  const AUTOSAVE_DELAY_MS = 2500;
+  const firebaseConfig = {
+    apiKey: "AIzaSyBB_aFIr3DFN2-K1_fBgzF8pbHhvF2Onwg",
+    authDomain: "alarma-de-guias.firebaseapp.com",
+    projectId: "alarma-de-guias",
+    storageBucket: "alarma-de-guias.firebasestorage.app",
+    messagingSenderId: "908955258814",
+    appId: "1:908955258814:web:5026fa7c88d93544fb73ef"
+  };
+
+  function berthLabel(n) { return n < 10 ? '0' + n : '' + n; }
+  function berthId(pierId, n) { return pierId + berthLabel(n); }
+  function todayISO() {
+    const d = new Date();
+    const m = ('' + (d.getMonth() + 1)).padStart(2, '0');
+    const day = ('' + d.getDate()).padStart(2, '0');
+    return d.getFullYear() + '-' + m + '-' + day;
+  }
+
+  let currentView = 'list';
+  let state = {};
+  let pending = {};
+  let dirty = false;
+  let db = null;
+  let unsub = null;
+  let currentDate = todayISO();
+  let saving = false;
+  let autosaveTimer = null;
+
+  const mainEl = document.getElementById('main');
+  const mapViewEl = document.getElementById('mapView');
+  const statusEl = document.getElementById('status');
+  const statusTextEl = document.getElementById('statusText');
+  const dateInput = document.getElementById('dateInput');
+  const saveBtn = document.getElementById('saveBtn');
+  const mapBtn = document.getElementById('mapBtn');
+  const lastSavedEl = document.getElementById('lastSaved');
+
+  dateInput.value = currentDate;
+
+  function setStatus(kind, text) {
+    statusEl.className = 'status ' + kind;
+    statusTextEl.textContent = text;
+  }
+
+  function setDirty(v) {
+    dirty = v;
+    saveBtn.classList.toggle('dirty', v);
+    if (v) setStatus('dirty', 'Cambios sin guardar (autoguardando…)');
+  }
+
+  function buildStaticLayout() {
+    mainEl.innerHTML = '';
+    PIERS.forEach(pier => {
+      const section = document.createElement('div');
+      section.className = 'pier';
+      const head = document.createElement('div');
+      head.className = 'pier-head';
+      const total = pier.range[1] - pier.range[0] + 1;
+      head.innerHTML = '<span>' + pier.name + '</span><span class="count">' + total + ' amarres</span>';
+      section.appendChild(head);
+
+      for (let n = pier.range[0]; n <= pier.range[1]; n++) {
+        const id = berthId(pier.id, n);
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.dataset.id = id;
+
+        const num = document.createElement('div');
+        num.className = 'num';
+        num.textContent = berthLabel(n);
+        row.appendChild(num);
+
+        const dots = document.createElement('div');
+        dots.className = 'dots';
+
+        const babor = document.createElement('button');
+        babor.className = 'dotbtn';
+        babor.dataset.id = id;
+        babor.dataset.side = 'babor';
+        babor.innerHTML = '<span class="circle"></span><span class="label">BABOR</span>';
+
+        const estribor = document.createElement('button');
+        estribor.className = 'dotbtn';
+        estribor.dataset.id = id;
+        estribor.dataset.side = 'estribor';
+        estribor.innerHTML = '<span class="circle"></span><span class="label">ESTRIB.</span>';
+
+        dots.appendChild(babor);
+        dots.appendChild(estribor);
+        row.appendChild(dots);
+        section.appendChild(row);
+      }
+      mainEl.appendChild(section);
+    });
+    mainEl.addEventListener('click', onDotClick);
+  }
+
+  function buildMapLayout() {
+    mapViewEl.querySelectorAll('.map-pier').forEach(el => el.remove());
+    PIERS.forEach(pier => {
+      const section = document.createElement('div');
+      section.className = 'map-pier';
+
+      const head = document.createElement('div');
+      head.className = 'map-pier-head';
+      head.textContent = pier.name;
+      section.appendChild(head);
+
+      const grid = document.createElement('div');
+      grid.className = 'map-grid';
+
+      for (let n = pier.range[0]; n <= pier.range[1]; n++) {
+        const id = berthId(pier.id, n);
+        const tile = document.createElement('div');
+        tile.className = 'map-tile';
+        tile.dataset.id = id;
+
+        const num = document.createElement('div');
+        num.className = 'map-num';
+        num.textContent = berthLabel(n) + ' ' + pier.id;
+        tile.appendChild(num);
+
+        const dots = document.createElement('div');
+        dots.className = 'map-dots';
+        const babor = document.createElement('span');
+        babor.className = 'map-dot';
+        babor.dataset.side = 'babor';
+        const estribor = document.createElement('span');
+        estribor.className = 'map-dot';
+        estribor.dataset.side = 'estribor';
+        dots.appendChild(babor);
+        dots.appendChild(estribor);
+        tile.appendChild(dots);
+
+        tile.insertAdjacentHTML('beforeend',
+          '<svg class="map-boat" viewBox="0 0 40 60">' +
+            '<path class="hull" d="M20,2 C29,8 34,18 34,28 L34,46 C34,54 28,58 20,58 ' +
+              'C12,58 6,54 6,46 L6,28 C6,18 11,8 20,2 Z"/>' +
+            '<rect class="cabin" x="14" y="19" width="12" height="23" rx="4"/>' +
+          '</svg>'
+        );
+
+        tile.addEventListener('click', () => goToRow(id));
+
+        grid.appendChild(tile);
+      }
+      section.appendChild(grid);
+      mapViewEl.appendChild(section);
+    });
+  }
+
+  function goToRow(id) {
+    showView('list');
+    const row = mainEl.querySelector('.row[data-id="' + id + '"]');
+    if (!row) return;
+    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    row.classList.remove('flash');
+    void row.offsetWidth;
+    row.classList.add('flash');
+    setTimeout(() => row.classList.remove('flash'), 1400);
+  }
+
+  function showView(view) {
+    currentView = view;
+    mainEl.classList.toggle('hidden', view !== 'list');
+    mapViewEl.classList.toggle('hidden', view !== 'map');
+    mapBtn.classList.toggle('active', view === 'map');
+    mapBtn.textContent = view === 'map' ? 'Lista' : 'Mapa';
+    document.body.classList.toggle('map-mode', view === 'map');
+    window.scrollTo(0, 0);
+  }
+
+  function renderRow(id) {
+    const s = state[id] || { babor: false, estribor: false };
+    const row = mainEl.querySelector('.row[data-id="' + id + '"]');
+    if (row) {
+      row.querySelector('.dotbtn[data-side="babor"]').classList.toggle('on-babor', !!s.babor);
+      row.querySelector('.dotbtn[data-side="estribor"]').classList.toggle('on-estribor', !!s.estribor);
+    }
+    const tile = mapViewEl.querySelector('.map-tile[data-id="' + id + '"]');
+    if (tile) {
+      tile.querySelector('.map-dot[data-side="babor"]').classList.toggle('on-babor', !!s.babor);
+      tile.querySelector('.map-dot[data-side="estribor"]').classList.toggle('on-estribor', !!s.estribor);
+    }
+  }
+
+  function renderAll() {
+    PIERS.forEach(pier => {
+      for (let n = pier.range[0]; n <= pier.range[1]; n++) renderRow(berthId(pier.id, n));
+    });
+  }
+
+  function onDotClick(e) {
+    const btn = e.target.closest('.dotbtn');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    const side = btn.dataset.side;
+    const current = state[id] || { babor: false, estribor: false };
+    const next = { babor: !!current.babor, estribor: !!current.estribor };
+    next[side] = !next[side];
+    state[id] = next;
+    pending[id] = next;
+    renderRow(id);
+    setDirty(true);
+    scheduleAutosave();
+  }
+
+  function blankState() {
+    const s = {};
+    PIERS.forEach(pier => {
+      for (let n = pier.range[0]; n <= pier.range[1]; n++) s[berthId(pier.id, n)] = { babor: false, estribor: false };
+    });
+    return s;
+  }
+
+  function scheduleAutosave() {
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(() => { save('auto'); }, AUTOSAVE_DELAY_MS);
+  }
+
+  function loadDate(date) {
+    if (unsub) { unsub(); unsub = null; }
+    clearTimeout(autosaveTimer);
+    currentDate = date;
+    state = blankState();
+    pending = {};
+    setDirty(false);
+    lastSavedEl.textContent = '';
+    renderAll();
+
+    if (!db) return;
+
+    setStatus('', 'Cargando ' + date + '…');
+    unsub = db.collection('days').doc(date).onSnapshot(
+      (snap) => {
+        const data = (snap.exists ? snap.data() : {}) || {};
+        state = blankState();
+        Object.keys(data).forEach(id => {
+          if (id === '_meta' || !state[id]) return;
+          if (pending[id]) { state[id] = pending[id]; return; }
+          state[id] = { babor: !!data[id].babor, estribor: !!data[id].estribor };
+        });
+        if (data._meta && data._meta.updatedAt) {
+          const t = new Date(data._meta.updatedAt);
+          lastSavedEl.textContent = 'Guardado por última vez: ' + t.toLocaleString('es-ES');
+        } else if (!snap.exists) {
+          lastSavedEl.textContent = 'Sin datos guardados para este día todavía.';
+        }
+        renderAll();
+        if (!dirty) setStatus('connected', 'Sincronizado');
+      },
+      (err) => {
+        console.error('onSnapshot error', err);
+        setStatus('error', 'Conexión perdida — reabre la página');
+      }
+    );
+  }
+
+  async function save(mode) {
+    clearTimeout(autosaveTimer);
+    if (!db) { setStatus('error', 'Sin conexión — no se pudo guardar'); return; }
+    if (saving) return;
+    const toWrite = pending;
+    if (Object.keys(toWrite).length === 0) { setDirty(false); return; }
+    saving = true;
+    saveBtn.disabled = true;
+    setStatus('', mode === 'auto' ? 'Autoguardando…' : 'Guardando…');
+
+    const payload = Object.assign({}, toWrite, { _meta: { updatedAt: new Date().toISOString() } });
+    const ref = db.collection('days').doc(currentDate);
+
+    try {
+      await ref.update(payload);
+    } catch (err) {
+      if (err && err.code === 'not-found') {
+        try {
+          await ref.set(payload);
+        } catch (err2) {
+          console.error('Error creando documento del día', err2);
+          saving = false;
+          saveBtn.disabled = false;
+          setStatus('error', 'Error al guardar — inténtalo de nuevo');
+          return;
+        }
+      } else {
+        console.error('Error guardando', err);
+        saving = false;
+        saveBtn.disabled = false;
+        setStatus('error', 'Error al guardar — inténtalo de nuevo');
+        return;
+      }
+    }
+
+    Object.keys(toWrite).forEach(id => { if (pending[id] === toWrite[id]) delete pending[id]; });
+    setDirty(Object.keys(pending).length > 0);
+    setStatus('connected', mode === 'auto' ? 'Autoguardado' : 'Guardado');
+    lastSavedEl.textContent = 'Guardado por última vez: ' + new Date().toLocaleString('es-ES');
+    saving = false;
+    saveBtn.disabled = false;
+  }
+
+  dateInput.addEventListener('change', async () => {
+    const newDate = dateInput.value;
+    if (!newDate || newDate === currentDate) return;
+    if (dirty) await save('manual');
+    loadDate(newDate);
+  });
+
+  saveBtn.addEventListener('click', () => save('manual'));
+
+  mapBtn.addEventListener('click', () => showView(currentView === 'map' ? 'list' : 'map'));
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden' && dirty) save('auto');
+  });
+
+  async function init() {
+    buildStaticLayout();
+    buildMapLayout();
+    renderAll();
+
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+
+    try {
+      await db.collection('days').doc('test-connection').get();
+      setStatus('connected', 'Sincronizado');
+    } catch (e) {
+      console.error('Firebase error', e);
+      setStatus('error', 'Sin conexión de datos — inténtalo después');
+      return;
+    }
+
+    loadDate(currentDate);
+  }
+
+  init();
+})();
+</script>
+
+</body>
+</html>
