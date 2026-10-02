@@ -232,15 +232,6 @@
   <div class="map-hint">Vista de conjunto. Toca un amarre para ir a la lista y cambiar su alarma.</div>
 </div>
 
-<div id="loginOverlay" class="hidden">
-  <form class="login-box" id="loginForm">
-    <h2>Alarma Guías</h2>
-    <p>Introduce la contraseña del equipo.</p>
-    <input type="password" id="loginPass" placeholder="Contraseña" autocomplete="current-password" required>
-    <button type="submit" id="loginBtn">Entrar</button>
-    <div id="loginError"></div>
-  </form>
-</div>
 
 <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore-compat.js"></script>
@@ -586,31 +577,8 @@
     const errEl = document.getElementById('loginError');
     let started = false;
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      errEl.textContent = '';
-      btnEl.disabled = true;
-      try {
-        await auth.signInWithEmailAndPassword(TEAM_EMAIL, passEl.value);
-        passEl.value = '';
-      } catch (err) {
-        const c = err && err.code;
-        if (c === 'auth/network-request-failed') errEl.textContent = 'Sin conexión. Inténtalo de nuevo.';
-        else if (c === 'auth/too-many-requests') errEl.textContent = 'Demasiados intentos. Espera unos minutos.';
-        else errEl.textContent = 'Contraseña incorrecta.';
-      }
-      btnEl.disabled = false;
-    });
-
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        started = false;
-        if (unsub) { unsub(); unsub = null; }
-        overlay.classList.remove('hidden');
-        setStatus('', 'Introduce la contraseña');
-        return;
-      }
-      overlay.classList.add('hidden');
+    // Iniciar sin autenticación
+    (async () => {
       if (started) return;
       started = true;
       try {
@@ -623,7 +591,7 @@
         return;
       }
       loadDate(currentDate);
-    });
+    })();
   }
 
   init();
