@@ -9,7 +9,7 @@
     --bg: transparent;
     --card-bg: rgba(255, 255, 255, 0.9);
     --text: #000000;
-    --text-dim: #333333;
+    --text-dim: #000000;
     --border: #e1e5ea;
     --accent: #2563eb;
     --accent-text: #ffffff;
@@ -75,14 +75,14 @@
     padding: 9px 16px;
     border-radius: 8px;
     border: none;
-    background: var(--off-border);
-    color: var(--text);
+    background: rgba(255, 255, 255, 0.6);
+    color: #000;
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
     white-space: nowrap;
   }
-  #saveBtn.dirty { background: var(--accent); color: var(--accent-text); }
+  #saveBtn.dirty { background: #000; color: #fff; }
   #saveBtn:active { opacity: 0.8; }
 
   .status {
@@ -104,12 +104,12 @@
 
   main { padding: 4px 12px 40px; max-width: 640px; margin: 0 auto; }
 
-  .pier { margin-top: 18px; border-radius: 12px; overflow: hidden; border: 2px solid #000; background: transparent; }
+  .pier { margin-top: 18px; border-radius: 12px; overflow: hidden; border: 4px solid #000; background: transparent; }
   .pier-head { padding: 10px 14px; background: transparent; font-weight: 700; font-size: 14.5px; display: flex; justify-content: space-between; align-items: center; }
   .pier-head .count { font-weight: 500; color: #000; font-size: 12.5px; }
 
-  .row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 1px solid #000; background: transparent; }
-  .row .num { font-size: 15px; font-weight: 600; width: 48px; flex-shrink: 0; color: #000; }
+  .row { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-top: 2px solid #000; background: transparent; }
+  .row .num { font-size: 18px; font-weight: 700; width: 48px; flex-shrink: 0; color: #000; }
   .row .dots { display: flex; gap: 22px; flex: 1; justify-content: flex-end; }
   .dotbtn { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; padding: 4px; cursor: pointer; -webkit-user-select: none; user-select: none; }
   .dotbtn .circle { width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid var(--off-border); background: var(--off-fill); transition: background 0.12s, border-color 0.12s, transform 0.08s; }
@@ -124,14 +124,14 @@
     padding: 9px 16px;
     border-radius: 8px;
     border: none;
-    background: var(--off-border);
-    color: var(--text);
+    background: rgba(255, 255, 255, 0.6);
+    color: #000;
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
     white-space: nowrap;
   }
-  #mapBtn.active { background: var(--accent); color: var(--accent-text); }
+  #mapBtn.active { background: #000; color: #fff; }
   #mapBtn:active { opacity: 0.8; }
   .controlbar-row2 { display: flex; gap: 8px; margin-top: 8px; }
 
