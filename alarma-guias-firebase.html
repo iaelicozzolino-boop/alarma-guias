@@ -49,14 +49,16 @@
     background: rgba(255, 255, 255, 0.4); border-bottom: 1px solid #000;
   }
   .brand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-  .brand-logo { height: 30px; width: auto; flex-shrink: 0; }
-  header h1 { margin: 0 0 2px; font-size: 18px; font-weight: 700; }
+  .brand-logo { height: 39px; width: auto; flex-shrink: 0; }
+  header h1 { margin: 8px 0 0; font-size: 22px; font-weight: 700; text-align: center; color: #000; }
   .wordmark {
-    margin: 0;
-    font-size: 11px;
-    font-weight: 500;
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 600;
     letter-spacing: 0.12em;
-    color: var(--text-dim);
+    color: #000;
+    text-align: center;
+    width: 100%;
   }
   .wordmark b { font-weight: 800; color: var(--text); }
 
@@ -65,18 +67,19 @@
     flex: 1;
     padding: 9px 10px;
     border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--input-bg);
-    color: var(--text);
+    border: 2px solid #000;
+    background: transparent;
+    color: #000;
     font-size: 14.5px;
+    font-weight: 600;
     font-family: inherit;
   }
   #saveBtn {
     padding: 9px 16px;
     border-radius: 8px;
     border: none;
-    background: rgba(255, 255, 255, 0.6);
-    color: #000;
+    background: #000;
+    color: #fff;
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
@@ -88,7 +91,7 @@
   .status {
     margin-top: 8px;
     font-size: 12px;
-    color: var(--text-dim);
+    color: #000;
     display: flex; align-items: center; gap: 6px; min-height: 16px;
   }
   .status .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-dim); flex-shrink: 0; }
@@ -96,7 +99,7 @@
   .status.error .dot { background: var(--red); }
   .status.dirty .dot { background: var(--amber); }
 
-  .legend { display: flex; gap: 14px; padding: 10px 16px 4px; font-size: 12.5px; color: var(--text-dim); flex-wrap: wrap; }
+  .legend { display: flex; gap: 14px; padding: 10px 16px 4px; font-size: 12.5px; color: #000; flex-wrap: wrap; font-weight: 600; }
   .legend span { display: flex; align-items: center; gap: 5px; }
   .legend .swatch { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--off-border); }
   .legend .swatch.g { background: var(--green); border-color: var(--green); }
@@ -114,18 +117,18 @@
   .dotbtn { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; padding: 4px; cursor: pointer; -webkit-user-select: none; user-select: none; }
   .dotbtn .circle { width: 30px; height: 30px; border-radius: 50%; border: 2.5px solid var(--off-border); background: var(--off-fill); transition: background 0.12s, border-color 0.12s, transform 0.08s; }
   .dotbtn:active .circle { transform: scale(0.9); }
-  .dotbtn .label { font-size: 10px; color: var(--text-dim); font-weight: 600; letter-spacing: 0.02em; }
+  .dotbtn .label { font-size: 10px; color: #000; font-weight: 700; letter-spacing: 0.02em; }
   .dotbtn.on-estribor .circle { background: var(--green); border-color: var(--green); }
   .dotbtn.on-babor .circle { background: var(--red); border-color: var(--red); }
 
-  .last-saved { padding: 2px 16px 0; font-size: 11.5px; color: var(--text-dim); }
+  .last-saved { padding: 2px 16px 0; font-size: 11.5px; color: #000; font-weight: 600; }
 
   #mapBtn {
     padding: 9px 16px;
     border-radius: 8px;
     border: none;
-    background: rgba(255, 255, 255, 0.6);
-    color: #000;
+    background: #000;
+    color: #fff;
     font-weight: 700;
     font-size: 14px;
     cursor: pointer;
@@ -138,7 +141,7 @@
   .hidden { display: none !important; }
 
   #mapView { padding: 10px 12px 40px; max-width: 640px; margin: 0 auto; }
-  .map-hint { font-size: 12.5px; color: var(--text-dim); padding: 0 4px 12px; }
+  .map-hint { font-size: 12.5px; color: #000; padding: 0 4px 12px; font-weight: 600; }
   .map-pier { margin-bottom: 20px; }
   .map-pier-head {
     font-weight: 700; font-size: 14px; color: var(--text);
