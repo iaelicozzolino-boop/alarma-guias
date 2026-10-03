@@ -199,35 +199,6 @@
   }
   .login-box button:disabled { opacity: .6; }
   #loginError { margin-top: 10px; min-height: 18px; font-size: 14px; color: var(--red); }
-
-  #addNotifBtn { padding: 9px 16px; border-radius: 8px; border: none; background: #000; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; }
-  #notificationBtn { padding: 9px 16px; border-radius: 8px; border: none; background: #000; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; }
-  #notificationBtn.pulsing { animation: pulse 1s ease-in-out infinite; }
-  @keyframes pulse {
-    0%, 100% { background: #000; }
-    50% { background: #dc2626; }
-  }
-
-  #notificationModal { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 24px; }
-  #notificationModal.hidden { display: none; }
-  .notification-box { width: 100%; max-width: 400px; background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-  .notification-box h2 { margin: 0 0 16px; font-size: 20px; color: #000; }
-  .notification-box .notification-content { margin: 16px 0; padding: 12px; background: #f5f5f5; border-radius: 8px; color: #000; font-size: 14px; line-height: 1.5; max-height: 300px; overflow-y: auto; }
-  .notification-box .notification-buttons { display: flex; gap: 8px; margin-top: 16px; }
-  .notification-box .notification-buttons button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-  .notification-box .close-btn { background: #999; color: #fff; }
-
-  #addNotificationModal { position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 24px; }
-  #addNotificationModal.hidden { display: none; }
-  .add-notification-box { width: 100%; max-width: 400px; background: #fff; border-radius: 14px; padding: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-  .add-notification-box h2 { margin: 0 0 4px; font-size: 20px; color: #000; }
-  .add-notification-box label { display: block; margin: 12px 0 6px; color: #000; font-weight: 600; font-size: 14px; }
-  .add-notification-box input[type="date"] { width: 100%; padding: 10px; border: 2px solid #000; border-radius: 8px; background: #fff; color: #000; font-size: 14px; font-weight: 600; box-sizing: border-box; }
-  .add-notification-box textarea { width: 100%; padding: 10px; border: 2px solid #000; border-radius: 8px; background: #fff; color: #000; font-size: 14px; font-family: inherit; resize: vertical; min-height: 120px; margin: 12px 0; box-sizing: border-box; }
-  .add-notification-box .modal-buttons { display: flex; gap: 8px; margin-top: 16px; }
-  .add-notification-box .modal-buttons button { flex: 1; padding: 10px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-  .add-notification-box .save-btn { background: #000; color: #fff; }
-  .add-notification-box .cancel-btn { background: #999; color: #fff; }
 </style>
 </head>
 <body>
@@ -245,8 +216,6 @@
     <button id="saveBtn">Guardar</button>
   </div>
   <div class="controlbar-row2">
-    <button id="addNotifBtn">Añad. Notificación</button>
-    <button id="notificationBtn">Notificación</button>
     <button id="mapBtn">Mapa</button>
   </div>
   <div class="status" id="status"><span class="dot"></span><span id="statusText">Conectando…</span></div>
@@ -314,17 +283,7 @@
   const dateInput = document.getElementById('dateInput');
   const saveBtn = document.getElementById('saveBtn');
   const mapBtn = document.getElementById('mapBtn');
-  const addNotifBtn = document.getElementById('addNotifBtn');
-  const notificationBtn = document.getElementById('notificationBtn');
   const lastSavedEl = document.getElementById('lastSaved');
-  const addNotificationModal = document.getElementById('addNotificationModal');
-  const notificationModal = document.getElementById('notificationModal');
-  const notifDate = document.getElementById('notifDate');
-  const notifText = document.getElementById('notifText');
-  const saveNotifBtn = document.getElementById('saveNotifBtn');
-  const cancelNotifBtn = document.getElementById('cancelNotifBtn');
-  const closeNotifBtn = document.getElementById('closeNotifBtn');
-  const notificationContent = document.getElementById('notificationContent');
 
   dateInput.value = currentDate;
 
@@ -518,8 +477,6 @@
     setDirty(false);
     lastSavedEl.textContent = '';
     renderAll();
-    checkNotifications();
-    watchNotifications();
 
     if (!db) return;
 
@@ -603,70 +560,6 @@
 
   mapBtn.addEventListener('click', () => showView(currentView === 'map' ? 'list' : 'map'));
 
-  // Notificaciones
-  addNotifBtn.addEventListener('click', () => {
-    notifDate.value = currentDate;
-    notifText.value = '';
-    addNotificationModal.classList.remove('hidden');
-  });
-
-  cancelNotifBtn.addEventListener('click', () => addNotificationModal.classList.add('hidden'));
-
-  saveNotifBtn.addEventListener('click', async () => {
-    if (!notifDate.value || !notifText.value.trim()) {
-      alert('Por favor completa todos los campos');
-      return;
-    }
-    try {
-      const notificationsRef = db.collection('notifications').doc(notifDate.value);
-      const notif = { text: notifText.value, createdAt: new Date().toISOString(), read: false };
-      await notificationsRef.update({ notifications: firebase.firestore.FieldValue.arrayUnion(notif) }).catch(() => notificationsRef.set({ notifications: [notif] }));
-      addNotificationModal.classList.add('hidden');
-      checkNotifications();
-    } catch (e) {
-      console.error('Error guardando notificación:', e);
-    }
-  });
-
-  notificationBtn.addEventListener('click', () => {
-    notificationBtn.classList.remove('pulsing');
-    notificationModal.classList.remove('hidden');
-  });
-
-  closeNotifBtn.addEventListener('click', async () => {
-    notificationModal.classList.add('hidden');
-    try {
-      const notificationsRef = db.collection('notifications').doc(currentDate);
-      await notificationsRef.update({ notifications: firebase.firestore.FieldValue.arrayUnion({ read: true }) });
-    } catch (e) {
-      console.log('Notificación leída');
-    }
-  });
-
-  async function checkNotifications() {
-    try {
-      const doc = await db.collection('notifications').doc(currentDate).get();
-      if (doc.exists && doc.data().notifications && doc.data().notifications.length > 0) {
-        const notifs = doc.data().notifications;
-        const unread = notifs.some(n => !n.read);
-        notificationBtn.classList.toggle('pulsing', unread);
-        if (unread) {
-          notificationContent.innerHTML = notifs.map((n, i) => `<div style="margin-bottom: 12px;">${n.text}</div>`).join('');
-        }
-      } else {
-        notificationBtn.classList.remove('pulsing');
-      }
-    } catch (e) {
-      console.log('Sin notificaciones');
-    }
-  }
-
-  let notificationUnsub = null;
-  function watchNotifications() {
-    if (notificationUnsub) notificationUnsub();
-    notificationUnsub = db.collection('notifications').doc(currentDate).onSnapshot(() => checkNotifications(), () => {});
-  }
-
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden' && dirty) save('auto');
   });
@@ -707,30 +600,6 @@
   init();
 })();
 </script>
-
-<div id="addNotificationModal" class="hidden">
-  <div class="add-notification-box">
-    <h2>Añadir Notificación</h2>
-    <label for="notifDate">Fecha:</label>
-    <input type="date" id="notifDate">
-    <label for="notifText">Texto:</label>
-    <textarea id="notifText" placeholder="Escribe tu notificación aquí..."></textarea>
-    <div class="modal-buttons">
-      <button class="save-btn" id="saveNotifBtn">Guardar Notificación</button>
-      <button class="cancel-btn" id="cancelNotifBtn">Cerrar</button>
-    </div>
-  </div>
-</div>
-
-<div id="notificationModal" class="hidden">
-  <div class="notification-box">
-    <h2>Notificación</h2>
-    <div class="notification-content" id="notificationContent"></div>
-    <div class="notification-buttons">
-      <button class="close-btn" id="closeNotifBtn">Cerrar</button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
