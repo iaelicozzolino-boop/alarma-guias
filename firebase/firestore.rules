@@ -1,0 +1,46 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- days/{fecha}: estado babor/estribor de cada puesto ----
+    // No se valida el tipo de cada puesto: 46 comprobaciones superan el límite de 1000 expresiones de Firestore.
+    function okMeta(d) {
+      return d.get('_meta', {}).keys().hasOnly(['updatedAt'])
+        && d.get('_meta', {'updatedAt': ''}).updatedAt is string
+        && d.get('_meta', {'updatedAt': ''}).updatedAt.size() <= 40;
+    }
+
+    function okDia(d) {
+      return d.keys().hasOnly(['A20', 'A21', 'A22', 'A23', 'A24', 'A25', 'A26', 'A27', 'A28', 'A29', 'A30', 'A31', 'A32', 'D01', 'D02', 'D03', 'D04', 'D05', 'D06', 'D07', 'D08', 'D09', 'D10', 'D11', 'D12', 'D13', 'D14', 'D15', 'D16', 'E01', 'E02', 'E03', 'E04', 'E05', 'E06', 'E07', 'E08', 'E09', 'E10', 'E11', 'E12', 'E13', 'E14', 'E15', 'E16', 'E17', '_meta'])
+        && okMeta(d);
+    }
+
+    match /days/{fecha} {
+      // La app hace get() de days/test-connection al arrancar: la lectura debe seguir abierta.
+      allow read: if true;
+      allow create, update: if fecha.matches('^20[0-9]{2}-[01][0-9]-[0-3][0-9]$')
+                            && okDia(request.resource.data);
+      allow delete: if false;
+    }
+
+    // ---- notifications: {date, text, createdAt} ----
+    match /notifications/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['date', 'text', 'createdAt'])
+                    && request.resource.data.keys().hasAll(['date', 'text', 'createdAt'])
+                    && request.resource.data.date is string
+                    && request.resource.data.date.matches('^20[0-9]{2}-[01][0-9]-[0-3][0-9]$')
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0
+                    && request.resource.data.text.size() <= 500
+                    && request.resource.data.createdAt is string
+                    && request.resource.data.createdAt.size() <= 40;
+      allow update, delete: if false;
+    }
+
+    // Cualquier otra colección: cerrada.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
